@@ -111,7 +111,7 @@ pipeline {
           // },
           "Analyze": {
             writeFile file: anchorefile,
-            text: "${env.DOCKER_REGISTRY_HOST}" + "/" + repotag + " " + dockerfile
+            text: "docker.io" + "/" + repotag + " " + dockerfile
             anchore name: anchorefile,
             engineurl: "${ANCHORE_ENGINE}",
             engineCredentialsId: 'anchore-credentials',
