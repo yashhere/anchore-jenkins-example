@@ -14,8 +14,6 @@ pipeline {
 
   environment {
     DOCKER_REPOSITORY = "yaagarwa/anchore-jenkins-example"
-    DOCKER_REGISTRY_URL = "https://registry-1.docker.io/v2/"
-    DOCKER_REGISTRY_HOST = "docker.io"
 
     //Use Pipeline Utility Steps plugin to read information from pom.xml into env variables
     IMAGE = readMavenPom().getArtifactId()
@@ -82,7 +80,7 @@ pipeline {
          */
         script {
           repotag = "${env.DOCKER_REPOSITORY}" + ":${BUILD_NUMBER}"
-          docker.withRegistry("${env.DOCKER_REGISTRY_URL}", 'docker-credentials') {
+          docker.withRegistry("", 'docker-credentials') {
             app = docker.build(repotag)
             app.push()
           }
