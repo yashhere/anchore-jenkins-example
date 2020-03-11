@@ -1,8 +1,18 @@
-# use a node base image
-FROM node:8-onbuild
+# Multi-stage build setup (https://docs.docker.com/develop/develop-images/multistage-build/)
 
-# set a health check
-HEALTHCHECK --interval=5s --timeout=5s CMD curl -f http://127.0.0.1:8000 || exit 1
+# Stage 1 (to create a "build" image, ~140MB)
+FROM openjdk:8-jdk-alpine3.7 AS builder
+RUN java -version
 
-# tell docker what port to expose
-EXPOSE 8000
+COPY . /usr/src/myapp/
+WORKDIR /usr/src/myapp/
+RUN apk --no-cache add maven && mvn --version
+RUN mvn package
+
+# Stage 2 (to create a downsized "container executable", ~87MB)
+FROM openjdk:8-jre-alpine3.7
+WORKDIR /root/
+COPY --from=builder /usr/src/myapp/target/app.jar .
+
+EXPOSE 8123
+ENTRYPOINT ["java", "-jar", "./app.jar"]
