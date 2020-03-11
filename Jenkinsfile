@@ -70,9 +70,6 @@ pipeline {
     }
 
     stage('Build and Publish Image') {
-      when {
-        branch 'master' //only run these steps on the master branch
-      }
       steps {
         /*
          * Multiline strings can be used for larger scripts. It is also possible to put scripts in your shared library
@@ -92,9 +89,8 @@ pipeline {
       steps {
         parallel(
           "Integration Test": {
-            agent any //run this stage on any available agent
             steps {
-              echo 'Run integration tests here...'
+              sh 'mvn test'
             }
           },
           // stage('Sonar Scan') {
