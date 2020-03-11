@@ -9,7 +9,7 @@ pipeline {
 
   environment {
       DOCKER_REPOSITORY = "yaagarwa/anchore-jenkins-example"
-      DOCKER_REGISTRY_URL = "https://index.docker.io/v2"
+      DOCKER_REGISTRY_URL = "https://registry-1.docker.io/v2/"
       DOCKER_REGISTRY_HOST = "docker.io"
   }
 
