@@ -3,12 +3,15 @@ def dockerfile
 def anchorefile
 def repotag
 def path
+def identity
+def directory
 
 pipeline {
   agent any
 
   // using the Timestamper plugin we can add timestamps to the console log
-  options {
+  options 
+   {
     timestamps()
   }
 
@@ -19,6 +22,7 @@ pipeline {
     IMAGE = readMavenPom().getArtifactId()
     VERSION = readMavenPom().getVersion()
   }
+
 
   stages {
     stage('Clone') {
@@ -85,41 +89,34 @@ pipeline {
       }
     }
 
-    stage('Parallel') {
+    stage('Analyze') {
       steps {
-        parallel(
-          "Integration Test": {
-            steps {
-              sh 'mvn test'
-            }
-          },
-          // stage('Sonar Scan') {
-          //   agent {
-          //     docker {
-          //       // we can use the same image and workspace as we did previously
-          //       reuseNode true
-          //       image 'maven:3.5.0-jdk-8'
-          //     }
-          //   }
-          //   environment {
-          //     //use 'sonar' credentials scoped only to this stage
-          //     SONAR = credentials('sonar-credentials')
-          //   }
-          //   steps {
-          //     sh 'mvn sonar:sonar -Dsonar.login=$SONAR_PSW'
-          //   }
-          // },
-          "Analyze": {
-            writeFile file: anchorefile,
-            text: "docker.io" + "/" + repotag + " " + dockerfile
-            anchore name: anchorefile,
-            engineurl: "${ANCHORE_ENGINE}",
-            engineCredentialsId: 'anchore-credentials',
-            annotations: [
-              [key: 'added-by', value: 'jenkins']
-            ]
-          }
-        )
+        writeFile file: anchorefile, text: "docker.io" + "/" + repotag + " " + dockerfile
+        anchore name: anchorefile,
+          engineurl: "${ANCHORE_ENGINE}",
+          engineCredentialsId: 'anchore-credentials',
+          bailOnFail: false,
+          annotations: [
+            [key: 'added-by', value: 'jenkins']
+          ]
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        echo "${env.JENKINS_HOME}"
+        echo "${env.WORKSPACE}"
+        directory = "${env.JENKINS_HOME}" + "/jobs/" + "${JOB_NAME}" + "/builds/" + "${BUILD_NUMBER}" + "/archive/AnchoreReport.CI-CD_" + "${BUILD_NUMBER}"
+        dir(directory) {
+          findFiles(glob: '*.*')
+          sh "ls -la"
+        }
+        withAWS(region: 'ap-south-1', credentials: 'aws-s3') {
+          identity = awsIdentity(); //Log AWS credentials
+          // Upload files from working directory 'dist' in your project workspace
+          s3Upload(bucket: "artifacts-for-grafeas", path: "${JOB_NAME}" + "-" + "${BUILD_NUMBER}", includePathPattern: '*.json', workingDir: directory);
+        }
       }
     }
   }
