@@ -36,7 +36,25 @@ pipeline {
         }
       }
     }
+    
+    stage ('Artifactory configuration') {
+            steps {
+                rtMavenDeployer (
+                    id: "MAVEN_DEPLOYER",
+                    serverId: "SERVER_ID",
+                    releaseRepo: "Jenkins-integration",
+                    snapshotRepo: "Jenkins-snapshot"
+                )
 
+                rtMavenResolver (
+                    id: "MAVEN_RESOLVER",
+                    serverId: "SERVER_ID",
+                    releaseRepo: "Jenkins-integration",
+                    snapshotRepo: "Jenkins-snapshot"
+                )
+            }
+        }
+    
     stage('Build') {
       agent {
         docker {
@@ -86,6 +104,12 @@ pipeline {
             app.push()
           }
         }
+        
+
+        rtPublishBuildInfo (
+            serverId: "SERVER_ID"
+        )
+            
       }
     }
 
