@@ -41,14 +41,14 @@ pipeline {
             steps {
                 rtMavenDeployer (
                     id: "MAVEN_DEPLOYER",
-                    serverId: "SERVER_ID",
+                    serverId: "${SERVER_ID}",
                     releaseRepo: "Jenkins-integration",
                     snapshotRepo: "Jenkins-snapshot"
                 )
 
                 rtMavenResolver (
                     id: "MAVEN_RESOLVER",
-                    serverId: "SERVER_ID",
+                    serverId: "${SERVER_ID}",
                     releaseRepo: "Jenkins-integration",
                     snapshotRepo: "Jenkins-snapshot"
                 )
@@ -107,7 +107,7 @@ pipeline {
         
 
         rtPublishBuildInfo (
-            serverId: "SERVER_ID"
+            serverId: "${SERVER_ID}"
         )
             
       }
