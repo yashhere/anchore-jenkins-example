@@ -113,7 +113,7 @@ pipeline {
       }
     }
 
-    stage('Analyze') {
+    stage('Analyze using Anchore') {
       steps {
         writeFile file: anchorefile, text: "docker.io" + "/" + repotag + " " + dockerfile
         anchore name: anchorefile,
@@ -125,7 +125,12 @@ pipeline {
           ]
       }
     }
-  }
+
+    stage('Analyze using Snyk') {
+      steps {
+        snykSecurity failOnIssues: false, snykInstallation: 'Snyk', snykTokenId: 'Snyk'
+    }
+  }}
   post {
     always {
       script {
